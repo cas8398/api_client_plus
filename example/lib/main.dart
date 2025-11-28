@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:api_client_plus/api_client_plus.dart';
 
@@ -8,26 +9,28 @@ void main() async {
   await ApiClientPlus().initialize(
     configs: [
       ApiConfig(
-        name: 'example',
-        baseUrl: 'https://example.com',
-        connectTimeout: Duration(seconds: 30),
-        receiveTimeout: Duration(seconds: 30),
-        sendTimeout: Duration(seconds: 30),
-        verboseLogging: false,
+        name: 'dev',
+        baseUrl: 'https://api.dev.example.com',
+        requiresAuth: true,
       ),
       ApiConfig(
-        name: 'dummyjson',
-        baseUrl: 'https://dummyjson.com',
-        verboseLogging: true,
+        name: 'prod',
+        baseUrl: 'https://api.example.com',
+        requiresAuth: true,
+      ),
+      ApiConfig(
+        name: 'auth',
+        baseUrl: 'https://api.example.com',
+        requiresAuth: false,
       ),
     ],
-    defaultDomain: 'dummyjson',
+    defaultDomain: kReleaseMode ? 'prod' : 'dev',
     cacheConfig: CacheConfig(
       enableCache: true,
-      defaultTtl: Duration(minutes: 1),
+      defaultTtl: Duration(minutes: 10),
     ),
     logConfig: LogConfig(
-      showLog: true,
+      showLog: kReleaseMode,
       showCacheLog: false,
       messageLimit: 300,
       prettyJson: false,
@@ -36,10 +39,22 @@ void main() async {
       logStyle: LogStyle.minimal,
       logLevel: "DEBUG",
     ),
-    tokenGetter: () async => null,
-    onTokenInvalid: () async {},
-    onCachedResponse: (response) async {
-      debugPrint('📦 ApiClientPlus response from cache ');
+    tokenGetter: () async {
+      // final prefs = await SharedPreferences.getInstance();
+      // return prefs.getString('access_token');
+      return 'my_access_token';
+    },
+    onTokenInvalid: () async {
+      // Redirect logic here
+    },
+    onRequest: (options) async {
+      options.headers['User-Agent'] = 'MyApp/1.0.0';
+    },
+    onResponse: (response) async {
+      debugPrint('✅ ${response.statusCode} ${response.requestOptions.path}');
+    },
+    onError: (error) async {
+      debugPrint('❌ API Error: ${error.message}');
     },
   );
 

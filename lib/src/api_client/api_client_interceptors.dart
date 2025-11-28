@@ -473,6 +473,10 @@ extension ApiClientInterceptors on ApiClientPlus {
           },
         );
 
+        // 🚨 CRITICAL FIX: Handle authentication for background calls
+        await _handleBackgroundAuthentication(
+            backgroundOptions, config, showLog);
+
         final response = await client.fetch(backgroundOptions);
 
         if (response.statusCode == 200) {
@@ -495,6 +499,50 @@ extension ApiClientInterceptors on ApiClientPlus {
         }
       }
     });
+  }
+
+  /// Handle authentication specifically for background calls
+  Future<void> _handleBackgroundAuthentication(
+    RequestOptions options,
+    ApiConfig config,
+    bool showLog,
+  ) async {
+    try {
+      final token = await _tokenGetter!();
+      final route = _getRouteForPath(options.path);
+      final requiresAuth = route?.requiresAuth ?? config.requiresAuth;
+
+      if (requiresAuth) {
+        if (token != null && token.isNotEmpty) {
+          options.headers["Authorization"] = "Bearer $token";
+          if (showLog) {
+            FastLog.d('🔐 Background call - Token added to ${options.uri}',
+                tag: "AUTH_BG");
+          }
+        } else {
+          if (showLog) {
+            FastLog.w(
+                '⚠️ Background call - No token available for ${options.uri}',
+                tag: "AUTH_BG");
+          }
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.unknown,
+            error: 'No token available for background refresh',
+          );
+        }
+      } else {
+        if (showLog) {
+          FastLog.d('🌐 Background call - No auth required for ${options.uri}',
+              tag: "AUTH_BG");
+        }
+      }
+    } catch (e) {
+      if (showLog) {
+        FastLog.e('❌ Background auth failed: $e', tag: "AUTH_BG");
+      }
+      rethrow;
+    }
   }
 
   /// Helper method to create cached response

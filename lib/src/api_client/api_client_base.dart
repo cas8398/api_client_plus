@@ -51,24 +51,140 @@ class ApiClientPlus with ApiClientCache {
   @override
   String get cacheInstanceName => 'api_client_plus_cache';
 
-  /// Initialize the API client
+  /// Initialize the API client with multiple configurations and authentication handlers
+  ///
+  /// ## Configuration
+  /// - [configs]: List of API configurations for different domains/environments
+  /// - [defaultDomain]: Default domain to use when not specified in requests
+  /// - [cacheConfig]: Cache settings for response caching
+  /// - [logConfig]: Logging configuration for API calls
+  ///
+  /// ## Authentication
+  /// - [tokenGetter]: Function that returns the authentication token (Bearer token)
+  /// - [onTokenInvalid]: Called when token is invalid or expired (typically redirect to login)
+  /// - [onAuthError]: Called specifically for 401/403 authentication errors
+  /// - [onTokenRefresh]: Optional token refresh logic
+  /// - [shouldRetryAuth]: Determines if auth should be retried after failure
+  ///
+  /// ## Global Callbacks
+  /// - [onRequest]: Intercept and modify requests before they are sent
+  /// - [onResponse]: Handle all successful API responses
+  /// - [onError]: Global error handler for all API errors
+  /// - [onCachedResponse]: Special handler for responses served from cache
+  ///
+  /// ## Example
+  /// ```dart
+  /// await ApiClientPlus().initialize(
+  ///   configs: [
+  ///     ApiConfig(
+  ///       name: 'api',
+  ///       baseUrl: 'https://api.example.com',
+  ///       requiresAuth: true,
+  ///     ),
+  ///   ],
+  ///   defaultDomain: 'api',
+  ///   tokenGetter: () async => await storage.read('access_token'),
+  ///   onTokenInvalid: () => Get.offAll(LoginPage()),
+  ///   onRequest: (options) => print('Sending: ${options.method} ${options.path}'),
+  ///   onResponse: (response) => print('Received: ${response.statusCode}'),
+  /// );
+  /// ```
+  ///
+  /// ## Throws
+  /// - [ArgumentError] if configs is empty or defaultDomain not found in configs
+  /// - [StateError] if already initialized
   Future<void> initialize({
+    /// List of API configurations for different domains, environments, or services
+    ///
+    /// Each config can have different base URLs, authentication requirements,
+    /// and headers. Useful for multi-tenant apps or microservices.
     required List<ApiConfig> configs,
+
+    /// The default domain name to use when making API requests
+    ///
+    /// This domain must exist in the [configs] list. If [domainName] is not
+    /// specified in individual API calls, this domain will be used.
     required String defaultDomain,
+
+    /// Configuration for response caching behavior
+    ///
+    /// Controls cache TTL, storage, and when to use cached responses.
+    /// Defaults to 5 minutes TTL with MMKV storage.
     CacheConfig cacheConfig = const CacheConfig(),
+
+    /// Configuration for API call logging
+    ///
+    /// Controls log levels, colors, and what information is logged.
+    /// Defaults to colored logs in debug mode.
     LogConfig logConfig = const LogConfig(),
 
     // Authentication
+    /// Function that provides the authentication token for secured endpoints
+    ///
+    /// This is called for every request to endpoints with [requiresAuth: true].
+    /// Return `null` or empty string to indicate no token is available.
     required Future<String?> Function() tokenGetter,
+
+    /// Called when the server rejects the token (401/403 responses)
+    ///
+    /// Typically used to:
+    /// - Clear local storage
+    /// - Navigate to login screen
+    /// - Show session expired message
     required Future<void> Function() onTokenInvalid,
+
+    /// Specific handler for authentication-related errors
+    ///
+    /// Use this for custom auth error handling separate from general errors.
+    /// If not provided, falls back to [onTokenInvalid].
     Future<void> Function(DioException error)? onAuthError,
+
+    /// Optional token refresh logic
+    ///
+    /// If provided, will be called when [shouldRetryAuth] returns true
+    /// after an auth error. Should fetch and store a new access token.
     Future<void> Function()? onTokenRefresh,
+
+    /// Determines whether to retry authentication after failure
+    ///
+    /// Return `true` to attempt token refresh and retry the request.
+    /// Return `false` to fail immediately and call [onTokenInvalid].
     Future<bool> Function()? shouldRetryAuth,
 
     // Global callbacks
+    /// Intercept and modify requests before they are sent to the server
+    ///
+    /// Use cases:
+    /// - Add custom headers
+    /// - Modify request body
+    /// - Log requests
+    /// - Cancel requests based on conditions
     Future<void> Function(RequestOptions options)? onRequest,
+
+    /// Handle all successful API responses (status code 200-299)
+    ///
+    /// Use cases:
+    /// - Response logging
+    /// - Response transformation
+    /// - Trigger side effects
     Future<void> Function(Response response)? onResponse,
+
+    /// Global error handler for all API errors
+    ///
+    /// Handles:
+    /// - Network errors
+    /// - Server errors (4xx, 5xx)
+    /// - Timeouts
+    /// - Parsing errors
     Future<void> Function(DioException error)? onError,
+
+    /// Special handler for responses served from cache
+    ///
+    /// Called instead of [onResponse] when data comes from cache.
+    /// Useful for:
+    /// - Tracking cache usage
+    /// - Different UI behavior for cached data
+    /// - Cache hit/miss analytics
     Future<void> Function(Response response)? onCachedResponse,
   }) async {
     if (_isInitialized) {

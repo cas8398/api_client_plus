@@ -106,21 +106,56 @@ import 'package:api_client_plus/api_client_plus.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await ApiClientPlus().initialize(
+   await ApiClientPlus().initialize(
     configs: [
+      ApiConfig(
+        name: 'dev',
+        baseUrl: 'https://api.dev.example.com',
+        requiresAuth: true,
+      ),
       ApiConfig(
         name: 'api',
         baseUrl: 'https://api.example.com',
         requiresAuth: true,
-        verboseLogging: true,
+      ),
+      ApiConfig(
+        name: 'auth',
+        baseUrl: 'https://api.example.com',
+        requiresAuth: false,
       ),
     ],
-    defaultDomain: 'api',
+    defaultDomain: kReleaseMode ? 'prod' : 'dev',
     cacheConfig: CacheConfig(
       enableCache: true,
       defaultTtl: Duration(minutes: 10),
     ),
-    tokenGetter: () async => await getToken(),
+    logConfig: LogConfig(
+      showLog: kReleaseMode,
+      showCacheLog: false,
+      messageLimit: 300,
+      prettyJson: false,
+      isColored: true,
+      showCaller: false,
+      logStyle: LogStyle.minimal,
+      logLevel: "DEBUG",
+    ),
+    tokenGetter: () async {
+      // final prefs = await SharedPreferences.getInstance();
+      // return prefs.getString('access_token');
+      return 'my_access_token';
+    },
+    onTokenInvalid: () async {
+      // Redirect logic here
+    },
+    onRequest: (options) async {
+      options.headers['User-Agent'] = 'MyApp/1.0.0';
+    },
+    onResponse: (response) async {
+      debugPrint('✅ ${response.statusCode} ${response.requestOptions.path}');
+    },
+    onError: (error) async {
+      debugPrint('❌ API Error: ${error.message}');
+    },
   );
 
   runApp(MyApp());
@@ -391,73 +426,6 @@ INFO 🌐 Cache Strategy: network_first for /posts
 INFO 🌐 Making network request...
 INFO 📥 Response: 156ms | 200 | from_cache: false
 INFO 💾 ✅ Cached: /posts (ttl: 10m)
-```
-
----
-
-## 💡 Examples
-
-### Complete Working Example
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:api_client_plus/api_client_plus.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await ApiClientPlus().initialize(
-    configs: [
-      ApiConfig(
-        name: 'dummyjson',
-        baseUrl: 'https://dummyjson.com',
-        verboseLogging: true,
-      ),
-    ],
-    defaultDomain: 'dummyjson',
-    cacheConfig: CacheConfig(
-      enableCache: true,
-      defaultTtl: Duration(minutes: 5),
-    ),
-    logConfig: LogConfig(
-      showLog: true,
-      logLevel: "DEBUG",
-    ),
-  );
-
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('ApiClientPlus Demo')),
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              try {
-                // Fetch data with caching
-                final response = await ApiClientService.get(
-                  '/posts/1',
-                  useCache: true,
-                  cacheStrategy: ApiClientCacheStrategy.cacheFirst,
-                );
-
-                print('✓ Title: ${response.data['title']}');
-                print('✓ From cache: ${response.extra['from_cache']}');
-              } catch (e) {
-                print('✗ Error: $e');
-              }
-            },
-            child: Text('Fetch Post'),
-          ),
-        ),
-      ),
-    );
-  }
-}
 ```
 
 ---
