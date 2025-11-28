@@ -1,0 +1,31 @@
+name: api_client_plus
+description: "A powerful Flutter plugin for managing multiple API endpoints with dynamic routing, caching, authentication, and performance-optimized HTTP calls."
+version: 1.0.0
+homepage: https://github.com/cas8398/api_client_plus
+
+repository: https://github.com/cas8398/api_client_plus
+issue_tracker: https://github.com/cas8398/api_client_plus/issues
+documentation: https://github.com/cas8398/api_client_plus#readme
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core HTTP client
+  dio: ^5.8.0+1
+  dio_cache_interceptor: ^4.0.5
+
+  # Storage
+  mmkv: ^2.2.4
+
+  # Logger
+  flutter_fastlog: ^0.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
