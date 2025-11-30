@@ -5,7 +5,7 @@
 [![Pub Version](https://img.shields.io/pub/v/api_client_plus?style=for-the-badge&logo=dart&logoColor=white&color=0175C2)](https://pub.dev/packages/api_client_plus)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Flutter](https://img.shields.io/badge/Flutter-%3E%3D3.0.0-02569B.svg?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/dart-%3E%3D3.0.0-0175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+[![wakatime](https://wakatime.com/badge/user/70818c15-eb72-433e-9174-2ed1623e2fca/project/f1c7408a-5e91-4d5f-817e-986f97301338.svg)](https://wakatime.com/badge/user/70818c15-eb72-433e-9174-2ed1623e2fca/project/f1c7408a-5e91-4d5f-817e-986f97301338)
 
 **🔥 Enterprise-Grade HTTP Client with Blazing Fast Performance**
 
