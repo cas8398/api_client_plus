@@ -23,6 +23,8 @@ class ApiClientPlus with ApiClientCache {
   static final ApiClientPlus _instance = ApiClientPlus._internal();
   factory ApiClientPlus() => _instance;
   ApiClientPlus._internal();
+  static bool _mmkvInitialized = false;
+  static bool _mmkvInitializationFailed = false;
 
   final Map<String, Dio> _clients = {};
   final Map<String, ApiConfig> _configs = {};
@@ -222,16 +224,31 @@ class ApiClientPlus with ApiClientCache {
 
     try {
       if (cacheConfig.enableCache) {
-        // Initialize MMKV
-        final rootDir = await MMKV.initialize(
-          logLevel: kReleaseMode
-              ? MMKVLogLevel.None
-              : (logConfig.showCacheLog
-                  ? MMKVLogLevel.Info
-                  : MMKVLogLevel.None),
-        );
-        if (logConfig.showLog) {
-          FastLog.i('📦 MMKV initialized: $rootDir', tag: 'CACHE');
+        // Initialize MMKV only if not already initialized and not failed
+        if (!_mmkvInitialized && !_mmkvInitializationFailed) {
+          final rootDir = await MMKV.initialize(
+            logLevel: kReleaseMode
+                ? MMKVLogLevel.None
+                : (logConfig.showCacheLog
+                    ? MMKVLogLevel.Info
+                    : MMKVLogLevel.None),
+          );
+          _mmkvInitialized = true;
+          if (logConfig.showLog) {
+            FastLog.i('📦 MMKV initialized: $rootDir', tag: 'CACHE');
+          }
+        } else if (_mmkvInitialized) {
+          if (logConfig.showLog) {
+            FastLog.i('📦 MMKV already initialized', tag: 'CACHE');
+          }
+        } else {
+          // MMKV previously failed to initialize
+          if (logConfig.showLog) {
+            FastLog.w(
+                '⚠️ Cache disabled due to previous initialization failure',
+                tag: 'CACHE');
+          }
+          cacheConfig = cacheConfig.copyWith(enableCache: false);
         }
       }
 

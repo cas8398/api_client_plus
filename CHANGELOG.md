@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Add safe init MMKV
+
 ## 1.0.1
 
 - Fixed background update

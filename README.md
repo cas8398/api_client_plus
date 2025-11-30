@@ -4,7 +4,7 @@
 
 [![Pub Version](https://img.shields.io/pub/v/api_client_plus?style=for-the-badge&logo=dart&logoColor=white&color=0175C2)](https://pub.dev/packages/api_client_plus)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Flutter](https://img.shields.io/badge/Flutter-%3E%3D3.0.0-02569B.svg?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Tests](https://github.com/cas8398/api_client_plus/actions/workflows/test.yml/badge.svg)](https://github.com/cas8398/api_client_plus/actions)
 [![wakatime](https://wakatime.com/badge/github/cas8398/api_client_plus.svg)](https://wakatime.com/badge/github/cas8398/api_client_plus)
 
 **🔥 Enterprise-Grade HTTP Client with Blazing Fast Performance**
@@ -427,6 +427,13 @@ INFO 🌐 Making network request...
 INFO 📥 Response: 156ms | 200 | from_cache: false
 INFO 💾 ✅ Cached: /posts (ttl: 10m)
 ```
+
+---
+
+## Screenshots
+
+![Performance Test](screenshots/test_performance.png)
+![Cache Syetem Test](screenshots/test_cache.png)
 
 ---
 
